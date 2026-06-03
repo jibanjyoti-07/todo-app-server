@@ -1,7 +1,24 @@
-import { RegistrationRequest } from "../domain/authDomain";
+import { LoginRequest, RegistrationRequest } from "../domain/authDomain";
+import logger from "../logger";
 import { User } from "../models";
+import bcrypt from "bcrypt";
 
+export async function LoginRepository(request: LoginRequest) {
+    logger.info("Inside LoginRepository");
+    const user:any = await User.findOne({
+        where: { email: request.email },
+    });
 
+    if (!user) return false;
+
+    const isMatch = await bcrypt.compare(request.password, user.password);
+    if (isMatch){
+        logger.info("Found the user : ", user)
+        return user;
+    }else {
+        return ""
+    }
+}
 export async function RegisterRepository(request: RegistrationRequest) {
     let externalId: string;
     let exists = true;
@@ -26,6 +43,7 @@ export async function RegisterRepository(request: RegistrationRequest) {
     console.log("User Created successfully", userObject);
     return true;
 }
+
 
 export async function EmailCheck(email: string) {
     const users = await User.findAll({
